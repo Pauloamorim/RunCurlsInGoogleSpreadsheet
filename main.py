@@ -44,7 +44,7 @@ def main():
 
 	# read column0 to get the names
 	descriptions = worksheet.col_values(1)
-	
+
 	# read colum1 to get the curls 
 	curls = worksheet.col_values(2)
 
@@ -55,7 +55,8 @@ def main():
 	# converting curls in requests	
 	for curl in curls:
 		# TODO handler when parse fails 
-		py_requests.append(uncurl.parse(curl))
+		print(f'result of uncurl : {curl}')
+		py_requests.append(uncurl.parse(f"""{curl}"""))
 
 	list_response = []
 	for i in range(len(py_requests)):

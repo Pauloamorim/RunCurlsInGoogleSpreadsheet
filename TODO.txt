@@ -1,0 +1,2 @@
+- If curl come with linebreak /n or character / at the end of each line, uncurl cant parse. Today, curl should come in one line and without / character
+
