@@ -43,31 +43,43 @@ def main():
 
 
 	# read column0 to get the names
-	descriptions = worksheet.col_values(1)
+	descriptions = worksheet.col_values(2)
 
 	# read colum1 to get the curls 
-	curls = worksheet.col_values(2)
+	curls = worksheet.col_values(3)
 
 	# removing header
 	descriptions.pop(0)
 	curls.pop(0)
 
 	# converting curls in requests	
-	for curl in curls:
-		# TODO handler when parse fails 
-		print(f'result of uncurl : {curl}')
-		py_requests.append(uncurl.parse(f"""{curl}"""))
+	for i in range(len(curls)):
+		try:
+			py_requests.append(uncurl.parse(f"""{curls[i]}"""))
+		except:
+			print(f"Failing parsing test \" {descriptions[i]} \". CURL INVALID")
+			py_requests.append("")
 
+
+	print("---------------- Starting tests executions ------------------")
 	list_response = []
 	for i in range(len(py_requests)):
-		print(f'Executing Test {descriptions[i]} ...')	
-		exec('list_response.append({})'.format(py_requests[i]))
+		msg = "Executing Test {} ..."	
+		if py_requests[i] != "":
+			msg += " OK "
+			exec('list_response.append({})'.format(py_requests[i]))
+		else:
+			list_response.append(None)
+			msg += " Failed "
+		
+		print(msg.format(descriptions[i]))
 
 	line_position = 2
 	for i in range(len(list_response)):
 		response = list_response[i]
-		worksheet.update_cell(line_position, 3, response.status_code) 
-		worksheet.update_cell(line_position, 4, response.text) 
+		if response != None:
+			worksheet.update_cell(line_position, 6, response.status_code) 
+			worksheet.update_cell(line_position, 4, response.text) 
 		line_position += 1
 
 
