@@ -5,6 +5,7 @@ import uncurl
 import requests
 import uncurl
 import time
+import json
 
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
@@ -41,6 +42,17 @@ def main():
 		worksheet = get_worksheet(sht)
 
 
+	has_variables = input('Does this spreadsheet has some variable in the CURL? (y/n) : ')
+	while has_variables.lower() != 'y' and has_variables.lower() != 'n':
+		has_variables = input('Please inform using y or n: ')
+
+	if has_variables.lower() == 'y':
+		json_path  = input('Inform the path of the JSON file with the variables: ')
+		# TODO check when path is invalid
+		variables = None
+		with open(json_path) as json_file:
+			data_json = json.load(json_file)
+			variables = data_json
 
 	# read column0 to get the names
 	descriptions = worksheet.col_values(2)
@@ -55,6 +67,8 @@ def main():
 	# converting curls in requests	
 	for i in range(len(curls)):
 		try:
+			#TODO search for possible variables using re.findall(r"{{.+}}",x, re.MULTILINE) and if user provided json file, replace for the value
+			curls[i] = handle_curl_string_before_parse(curls[i])
 			py_requests.append(uncurl.parse(f"""{curls[i]}"""))
 		except:
 			print(f"Failing parsing test \" {descriptions[i]} \". CURL INVALID")
@@ -64,23 +78,29 @@ def main():
 	print("---------------- Starting tests executions ------------------")
 	list_response = []
 	for i in range(len(py_requests)):
-		msg = "Executing Test {} ..."	
+		msg = "Executing Test {} ..."
 		if py_requests[i] != "":
 			msg += " OK "
 			exec('list_response.append({})'.format(py_requests[i]))
 		else:
 			list_response.append(None)
 			msg += " Failed "
-		
+
 		print(msg.format(descriptions[i]))
 
 	line_position = 2
 	for i in range(len(list_response)):
 		response = list_response[i]
 		if response != None:
-			worksheet.update_cell(line_position, 6, response.status_code) 
-			worksheet.update_cell(line_position, 4, response.text) 
+			worksheet.update_cell(line_position, 6, response.status_code)
+			worksheet.update_cell(line_position, 4, response.text)
 		line_position += 1
+
+
+
+def handle_curl_string_before_parse(curl):
+	return curl.replace("\\","").replace("-X","").replace("GET","").replace("POST","").replace("PUT","").replace("PATCH","")
+
 
 
 def get_spreadsheet(gc):
